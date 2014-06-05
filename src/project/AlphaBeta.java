@@ -1,11 +1,23 @@
 /**
+ * CS 420: Artificial Intelligence
+ * Professor: Daisy Tang
  *
+ * Project #3
+ *
+ * This project uses alpha-beta pruning to create an
+ * AI that can play a specific game. The game consists
+ * of an 8x8 board in which two players take turns
+ * placing a piece on the grid, first player to achieve
+ * 4-in-a-row wins.
+ *
+ * Nathan Chambers & Harrison Nguyen
  */
 package project;
 
 /**
- * @author Harrison
- * 
+ * The AlphaBeta class is used to create the object that acts as an AI and
+ * determines all of the AI's moves. It uses alpha-beta pruning along with an
+ * overly complicated evaluation method to produce seemingly intelligent moves
  */
 public class AlphaBeta {
 	/**
@@ -33,9 +45,11 @@ public class AlphaBeta {
 	 */
 	private int depth;
 
+	/**
+	 * whether or not the AI got to go first. If the AI didn't get first turn,
+	 * it changes its behavior from trying to win to trying to force a draw
+	 */
 	private boolean first;
-
-	private static final boolean NATHAN = true;
 
 	public AlphaBeta(int lim, boolean b) {
 		this.limit = (long) (lim * 1000);
@@ -144,45 +158,10 @@ public class AlphaBeta {
 		if (s.spaces == 0)
 			return 0;
 		int score = 0;
-		int x = 0;
-		int o = 0;
 
-		if (NATHAN) {
-			for (int i = 0; i < s.board.length; i++)
-				for (int j = 0; j < s.board.length; j++)
-					score += eval(s, i, j);
-			return score;
-		}
-
-		// checks for all vertical rows possible
-		for (int i = 0; i < s.board.length; ++i)
-			for (int j = 0; j < s.board.length - 3; ++j) {
-				for (int k = 0; k < 4; ++k) {
-					if (s.board[i][j + k] == 1)
-						x++;
-					if (s.board[i][j + k] == -1)
-						o++;
-				}
-				score += x * x;
-				score -= o * o;
-				x = 0;
-				o = 0;
-			}
-
-		// checks for all horizontal rows possible
-		for (int i = 0; i < s.board.length - 3; ++i)
-			for (int j = 0; j < s.board.length; ++j) {
-				for (int k = 0; k < 4; ++k) {
-					if (s.board[i + k][j] == 1)
-						x++;
-					if (s.board[i + k][j] == -1)
-						o++;
-				}
-				score += x * x;
-				score -= o * o;
-				x = 0;
-				o = 0;
-			}
+		for (int i = 0; i < s.board.length; i++)
+			for (int j = 0; j < s.board.length; j++)
+				score += eval(s, i, j);
 		return score;
 	}
 
