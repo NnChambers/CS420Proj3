@@ -1,43 +1,52 @@
 /**
- * 
+ * CS 420: Artificial Intelligence
+ * Professor: Daisy Tang
+ *
+ * Project #3
+ *
+ * This project uses alpha-beta pruning to create an
+ * AI that can play a specific game. The game consists
+ * of an 8x8 board in which two players take turns
+ * placing a piece on the grid, first player to achieve
+ * 4-in-a-row wins.
+ *
+ * Nathan Chambers & Harrison Nguyen
  */
 package project;
 
 import java.util.Scanner;
 
 /**
- * Player is represented by -1, Program is represented by 1
- * 
- * @author Harrison
- * 
+ * The main method starts by asking the player for how long the AI should take
+ * to move and whether or not the player wants to go first. Both of these are
+ * used to create the AI by creating an object of the AlphaBeta class. The game
+ * is then played in a while loop that ends either when someone wins or the
+ * number of available spaces reaches 0
  */
 public class Main {
 	final static int N = 8; // I like to keep such things customizable
-	private static Scanner sc = new Scanner(System.in);
 
-	/**
-	 * @param args
-	 * @throws InterruptedException
-	 */
 	public static void main(String[] args) throws InterruptedException {
-
+		Scanner sc = new Scanner(System.in);
 		String input;
 		AlphaBeta ai;
 		Action a;
 		boolean player;
 		State state = new State(new int[N][N], N * N);
 
-		System.out.println("How long should the program think to make a move?");
-		int limit = sc.nextInt();
-		sc.nextLine();
-
-		System.out.println("Are you going first? (Y/N)");
+		System.out.println("Would you like to go first? (Y/N):");
 		if (sc.nextLine().toUpperCase().charAt(0) != 'Y')
 			player = false;
-		else 
+		else
 			player = true;
-		state.print();
+
+		System.out
+				.println("How long should the computer think about its moves (in seconds)? :");
+		int limit = sc.nextInt();
+		sc.nextLine();
+		
 		ai = new AlphaBeta(limit, !player);
+		state.print();
 		
 		while (state.spaces > 0) {
 			if (player) {
@@ -51,7 +60,7 @@ public class Main {
 			} else {
 				// program move
 				a = ai.absearch(state);
-				//a = ai.makeMove(state);
+				// a = ai.makeMove(state);
 				state.move(a.i, a.j, player);
 				a.print();
 			}
@@ -63,6 +72,7 @@ public class Main {
 			if (state.checkWin() != 0)
 				break;
 		}
+		sc.close();
 		switch (state.checkWin()) {
 		case 0:
 			System.out.println("DRAW");
@@ -75,14 +85,4 @@ public class Main {
 		}
 
 	}
-
-	/*
-	 * I = how far down the board, J = how far right
-	 * 
-	 * public static Action convert(String s) { // a = /u97, 0 = /u48 return new
-	 * Action(s.charAt(0) - 97, s.charAt(1) - 48 - 1); }
-	 * 
-	 * public static String convert(Action a) { return Character.toString((char)
-	 * (a.i + 97)) + Character.toString((char) (a.j + 49)); }
-	 */
 }

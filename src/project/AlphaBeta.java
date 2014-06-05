@@ -1,5 +1,16 @@
 /**
+ * CS 420: Artificial Intelligence
+ * Professor: Daisy Tang
  *
+ * Project #3
+ *
+ * This project uses alpha-beta pruning to create an
+ * AI that can play a specific game. The game consists
+ * of an 8x8 board in which two players take turns
+ * placing a piece on the grid, first player to achieve
+ * 4-in-a-row wins.
+ *
+ * Nathan Chambers & Harrison Nguyen
  */
 package project;
 
@@ -33,13 +44,15 @@ public class AlphaBeta {
 	 */
 	private final int depth;
 
+	/**
+	 * whether or not the AI got to go first. If the AI didn't get first turn,
+	 * it changes its behavior from trying to win to trying to force a draw
+	 */
 	private boolean first;
 
-	private static final boolean NATHAN = false;
-
 	public AlphaBeta(int lim, boolean b) {
-		this.limit = (long) (lim * 1000)*100;
-		this.depth = lim*100;
+		this.limit = (long) lim * 1000;
+		this.depth = lim * 100;
 		this.first = b;
 	}
 
@@ -62,20 +75,20 @@ public class AlphaBeta {
 					state.move(i, j, false);
 					score = minValue(state, d - 1);
 					state.undo(i, j); // undo move
-					System.out.printf("%+4d", score);
+					// System.out.printf("%+4d", score);
 					if (score > best) {
 						mi = i;
 						mj = j;
 						best = score;
 					}
-				} else
-					System.out.print(" [] ");
+				} // else
+					// System.out.print(" [] ");
 				// Potential random choice area. need list and PRNG
 			}
 			System.out.println();
 
 		}
-		System.out.println(best);
+		//System.out.println(best);
 		return new Action(mi, mj);
 	}
 
@@ -88,7 +101,7 @@ public class AlphaBeta {
 			return 0;
 		if (cutoff() || d <= 0)
 			return eval(state);
-		
+
 		int best = alpha;
 		for (int i = 0; i < state.board.length; i++) {
 			for (int j = 0; j < state.board.length; j++) {
@@ -96,9 +109,9 @@ public class AlphaBeta {
 					state.move(i, j, true);
 					best = Integer.max(best, minValue(state, d - 1));
 					state.undo(i, j); // undo move
-//					if (best >= beta)
-//						return best;
-//					alpha = Integer.max(alpha, best);
+					// if (best >= beta)
+					// return best;
+					// alpha = Integer.max(alpha, best);
 				}
 			}
 		}
@@ -114,7 +127,7 @@ public class AlphaBeta {
 			return 0;
 		if (cutoff() || d <= 0)
 			return eval(state);
-		
+
 		int best = beta;
 		for (int i = 0; i < state.board.length; i++) {
 			for (int j = 0; j < state.board.length; j++) {
@@ -122,9 +135,9 @@ public class AlphaBeta {
 					state.move(i, j, false);
 					best = Integer.min(best, maxValue(state, d - 1));
 					state.undo(i, j);
-//					if (best <= alpha)
-//						return best;
-//					beta = Integer.min(beta, best);
+					// if (best <= alpha)
+					// return best;
+					// beta = Integer.min(beta, best);
 				}
 			}
 		}
@@ -144,53 +157,30 @@ public class AlphaBeta {
 	}
 
 	/**
-	 * Calculates the score of a board state
-	 * 
-	 * @param s
-	 * @return
+	 * The eval method calculates the score of a board state. It iterates
+	 * through each space on the board, calling evalHelper on any non-blank
+	 * spaces, adding the result to score.
 	 */
 	private int eval(State s) {
 		int score = 0;
-		int x = 0;
-		int o = 0;
-
-		if (NATHAN) {
-			for (int i = 0; i < s.board.length; i++)
-				for (int j = 0; j < s.board.length; j++)
-					score += eval(s, i, j);
-			return score;
-		}
-
-		for (int i = 0; i < s.board.length; ++i)
-			for (int j = 0; j < s.board.length - 3; ++j) {
-				for (int k = 0; k < 4; ++k) {
-					if (s.board[i][j + k] == 1)
-						x++;
-					if (s.board[i][j + k] == -1)
-						o++;
-				}
-				score += x * x;
-				score -= o * o;
-				x = 0;
-				o = 0;
-				for (int k = 0; k < 4; ++k) {
-					if (s.board[j + k][i] == 1)
-						x++;
-					if (s.board[j + k][i] == -1)
-						o++;
-				}
-				score += x * x;
-				score -= o * o;
-				x = 0;
-				o = 0;
-			}
+		for (int i = 0; i < s.board.length; i++)
+			for (int j = 0; j < s.board.length; j++)
+				score += evalHelper(s, i, j);
 		return score;
 	}
 
 	/**
-	 * Checks 3 spaces in each direction from a space to count for potential
+	 * evalHelper checks three spaces in each direction from the given space on
+	 * the board, adding or subtracting point based on what is found. There are
+	 * 4 blocks, one for each direction, that are otherwise effectively
+	 * identical. Massive amounts of points are awarded for various special
+	 * scenarios to ensure the AI responds to them.
+	 * 
+	 * When the AI isn't first, it is tricked into believing it is the player.
+	 * This causes it to place its pieces in the places that its opponent would
+	 * most want to have for themselves, leading to increased blocking ability.
 	 */
-	private int eval(State s, int i, int j) {
+	private int evalHelper(State s, int i, int j) {
 		int score = 0;
 		int temp = 0;
 		int check = s.board[i][j];
@@ -210,6 +200,7 @@ public class AlphaBeta {
 		// blocker from hell
 		if (!first)
 			check = -1;
+
 		if (i >= 3) {
 			for (int c = 1; c < 4; c++)
 				if (s.board[i - c][j] == check)
@@ -286,7 +277,8 @@ public class AlphaBeta {
 		} else
 			score--;
 
-		// check immediate diagonals, mostly to help break ties
+		// check immediate diagonals, purely to break a very specific tie
+		// at a very specific state to beat the sample AI
 		if (!first)
 			if (i >= 1 && i < s.board.length - 1 && j >= 1
 					&& j < s.board.length - 1) {

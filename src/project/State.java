@@ -1,11 +1,25 @@
 /**
- * 
+ * CS 420: Artificial Intelligence
+ * Professor: Daisy Tang
+ *
+ * Project #3
+ *
+ * This project uses alpha-beta pruning to create an
+ * AI that can play a specific game. The game consists
+ * of an 8x8 board in which two players take turns
+ * placing a piece on the grid, first player to achieve
+ * 4-in-a-row wins.
+ *
+ * Nathan Chambers & Harrison Nguyen
  */
 package project;
 
 /**
- * @author Harrison
- * 
+ * The State class allows the creation of an object representing the state of
+ * the game board. It contains an int[][] array in which 1 represents the AI, -1
+ * the player and 0 blank spaces. The spaces variable allows the program to
+ * easily terminate when the board fills up (a draw). The class additionally
+ * contains methods for win checking and printing out the current state
  */
 public class State {
 	public int[][] board;
@@ -29,7 +43,7 @@ public class State {
 		if (i > board.length || j > board.length || i < 0 || j < 0
 				|| board[i][j] != 0)
 			return false;
-		
+
 		--spaces;
 		if (player)
 			board[i][j] = -1;
@@ -83,7 +97,7 @@ public class State {
 				return false;
 		return true;
 	}
-	
+
 	/**
 	 * Prints out a given state
 	 */
