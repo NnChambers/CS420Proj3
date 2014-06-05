@@ -1,23 +1,11 @@
 /**
- * CS 420: Artificial Intelligence
- * Professor: Daisy Tang
  *
- * Project #3
- *
- * This project uses alpha-beta pruning to create an
- * AI that can play a specific game. The game consists
- * of an 8x8 board in which two players take turns
- * placing a piece on the grid, first player to achieve
- * 4-in-a-row wins.
- *
- * Nathan Chambers & Harrison Nguyen
  */
 package project;
 
 /**
- * The AlphaBeta class is used to create the object that acts as an AI and
- * determines all of the AI's moves. It uses alpha-beta pruning along with an
- * overly complicated evaluation method to produce seemingly intelligent moves
+ * @author Harrison
+ * 
  */
 public class AlphaBeta {
 	/**
@@ -38,26 +26,28 @@ public class AlphaBeta {
 	/**
 	 * how long the algorithm should run
 	 */
-	private long limit;
+	private final long limit;
 
 	/**
 	 * depth of the algorithm (to be used with IDDFS)
 	 */
-	private int depth;
+	private final int depth;
 
-	/**
-	 * whether or not the AI got to go first. If the AI didn't get first turn,
-	 * it changes its behavior from trying to win to trying to force a draw
-	 */
 	private boolean first;
 
+	private static final boolean NATHAN = false;
+
 	public AlphaBeta(int lim, boolean b) {
-		this.limit = (long) (lim * 1000);
+		this.limit = (long) (lim * 1000)*100;
+		this.depth = lim*100;
 		this.first = b;
 	}
 
 	public Action absearch(State state) {
-		depth = Integer.MAX_VALUE;
+		return absearch(state, depth);
+	}
+
+	public Action absearch(State state, int d) {
 		int score;
 		int mi = 0;
 		int mj = 0;
@@ -70,17 +60,16 @@ public class AlphaBeta {
 			for (int j = 0; j < state.board.length; j++) {
 				if (state.board[i][j] == 0) {
 					state.move(i, j, false);
-					score = minValue(state);
+					score = minValue(state, d - 1);
+					state.undo(i, j); // undo move
 					System.out.printf("%+4d", score);
 					if (score > best) {
 						mi = i;
 						mj = j;
 						best = score;
 					}
-					state.undo(i, j); // undo move
 				} else
 					System.out.print(" [] ");
-
 				// Potential random choice area. need list and PRNG
 			}
 			System.out.println();
@@ -90,42 +79,52 @@ public class AlphaBeta {
 		return new Action(mi, mj);
 	}
 
-	private int maxValue(State state) {
-		if (cutoff() || depth <= 0 || state.spaces <= 0
-				|| state.checkWin() != 0)
+	private int maxValue(State state, int d) {
+		if (state.checkWin() == 1)
+			return Integer.MAX_VALUE / 2;
+		if (state.checkWin() == -1)
+			return Integer.MIN_VALUE / 2;
+		if (state.spaces == 0)
+			return 0;
+		if (cutoff() || d <= 0)
 			return eval(state);
-
+		
 		int best = alpha;
-		depth--;
 		for (int i = 0; i < state.board.length; i++) {
 			for (int j = 0; j < state.board.length; j++) {
 				if (state.board[i][j] == 0) {
 					state.move(i, j, true);
-					best = Integer.max(best, minValue(state));
-					state.undo(i, j);
-					if (best >= beta)
-						return beta;
+					best = Integer.max(best, minValue(state, d - 1));
+					state.undo(i, j); // undo move
+//					if (best >= beta)
+//						return best;
+//					alpha = Integer.max(alpha, best);
 				}
 			}
 		}
 		return best;
 	}
 
-	private int minValue(State state) {
-		if (cutoff() || depth <= 0 || state.spaces <= 0
-				|| state.checkWin() != 0)
-
+	private int minValue(State state, int d) {
+		if (state.checkWin() == 1)
+			return Integer.MAX_VALUE / 2;
+		if (state.checkWin() == -1)
+			return Integer.MIN_VALUE / 2;
+		if (state.spaces == 0)
+			return 0;
+		if (cutoff() || d <= 0)
 			return eval(state);
+		
 		int best = beta;
-		depth--;
 		for (int i = 0; i < state.board.length; i++) {
 			for (int j = 0; j < state.board.length; j++) {
 				if (state.board[i][j] == 0) {
 					state.move(i, j, false);
-					best = Integer.min(best, maxValue(state));
+					best = Integer.min(best, maxValue(state, d - 1));
 					state.undo(i, j);
-					if (best <= alpha)
-						return alpha;
+//					if (best <= alpha)
+//						return best;
+//					beta = Integer.min(beta, best);
 				}
 			}
 		}
@@ -134,7 +133,7 @@ public class AlphaBeta {
 
 	/**
 	 * Program will return the best solution found so far given a specific
-	 * period of time
+	 * period of time. Return True if time limit is done
 	 * 
 	 * @return
 	 */
@@ -151,17 +150,40 @@ public class AlphaBeta {
 	 * @return
 	 */
 	private int eval(State s) {
-		if (s.checkWin() == 1)
-			return Integer.MAX_VALUE / 2;
-		if (s.checkWin() == -1)
-			return Integer.MIN_VALUE / 2;
-		if (s.spaces == 0)
-			return 0;
 		int score = 0;
+		int x = 0;
+		int o = 0;
 
-		for (int i = 0; i < s.board.length; i++)
-			for (int j = 0; j < s.board.length; j++)
-				score += eval(s, i, j);
+		if (NATHAN) {
+			for (int i = 0; i < s.board.length; i++)
+				for (int j = 0; j < s.board.length; j++)
+					score += eval(s, i, j);
+			return score;
+		}
+
+		for (int i = 0; i < s.board.length; ++i)
+			for (int j = 0; j < s.board.length - 3; ++j) {
+				for (int k = 0; k < 4; ++k) {
+					if (s.board[i][j + k] == 1)
+						x++;
+					if (s.board[i][j + k] == -1)
+						o++;
+				}
+				score += x * x;
+				score -= o * o;
+				x = 0;
+				o = 0;
+				for (int k = 0; k < 4; ++k) {
+					if (s.board[j + k][i] == 1)
+						x++;
+					if (s.board[j + k][i] == -1)
+						o++;
+				}
+				score += x * x;
+				score -= o * o;
+				x = 0;
+				o = 0;
+			}
 		return score;
 	}
 
